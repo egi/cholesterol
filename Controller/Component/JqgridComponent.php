@@ -89,15 +89,23 @@ class JqgridComponent extends Component {
 	}
 
 	/** construct $conditions array when using Advanced Search feature */
-	protected function _mergeAdvSearchConditions(&$conditions, $needFields, $filters) {
+	protected function _mergeAdvSearchConditions(&$conditions, $needFields, $filters,$fields) {
 
+
+		//pr($fields);
+		//pr($filters);
+		
 		$rules = array();
 
 		foreach ($filters->rules as $rule) {
-
+				
 			$op = JqgridComponent::$mapOpers[$rule->op];
-
+			
 			$data = $rule->data;
+			
+			#hack untuk memasukan advance select yang hasilnya 0.name menjadi ke kondition, untuk qgrid toolbar search nya di add  defaultSearch : 'nc' sebagai option
+			$this->_hack_count_added_condition_to_search($fields,$rule);
+
 			switch ($rule->op) {
 			case 'bn':
 			case 'bw':
@@ -234,6 +242,33 @@ class JqgridComponent extends Component {
 		return $field_order;
 	}
 
+	// Ubah rule fieldsnya 
+	public function _hack_count_added_condition_to_search(&$fields,&$rule){
+			
+			foreach($fields as $key =>$value){
+				$temp_rule = str_replace("0.", "as ",$rule->field);
+				if(strpos($value,$temp_rule)){
+					$rule->field = str_replace($temp_rule," ",$value);
+				}			
+							
+			}	
+	
+	}
+	// Ubah conditions ordernyanya 
+	public function _hack_count_change_condition_for_sort(&$fields,&$f){
+			
+			foreach($fields as $key =>$value){
+				$temp_rule = str_replace("0.", "as ",$f['sidx']);
+				if(strpos($value,$temp_rule)){
+					return array(
+						str_replace($temp_rule," ",$value) => $f['sord'],
+					); 
+				}			
+			}	
+			return array(
+				$f['sidx'] => $f['sord'],
+			);
+	}
 	public function find($modelName, $options = array()) {
 
 		$options += Set::merge(array(
@@ -247,15 +282,22 @@ class JqgridComponent extends Component {
 			extract($this->_extractGetParams($this->controller->request->params['form']));
 		} else {
 			$f = $this->_extractGetParams($this->controller->request->query);
-			extract($f
-			);
+			extract($f);
 		}
 
 		$exportOptions = json_decode(Cache::read('export_options_' . $gridId), true);
-
+	
+		/****
+		start hack merge order with sort
+		*/
+		if(!empty($f['sidx'])){
+			$options['order'] = $this->_hack_count_change_condition_for_sort($fields,$f);
+		}
+		#end hack 
+		
 		$limit = $rows == 0 ? 10 : $rows;
 		$field_order = isset($order) ? $order : $this->_getFieldOrder($sidx, $sord);
-
+		
 		$model = ClassRegistry::init($modelName);
 
 		if (!empty($fields)) {
@@ -269,16 +311,17 @@ class JqgridComponent extends Component {
 				$fields[] = $modelName . '.' . $needFields[$modelName][$i];
 			}
 		}
-
+		
 		if ($_search) {
 			if (!empty($filters)) {
-				$this->_mergeAdvSearchConditions($options['conditions'], $needFields, $filters);
+				$this->_mergeAdvSearchConditions($options['conditions'], $needFields, $filters,$options['fields']);
 			} else {
 				$this->_mergeFilterConditions($options['conditions'], $needFields, $filterMode);
 			}
 		}
 
 		$countOptions = $options;
+		
 		unset ($countOptions['fields']);
 		$count = $model->find('count', $countOptions);
 
