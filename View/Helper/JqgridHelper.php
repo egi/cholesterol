@@ -122,6 +122,7 @@ EOF;
 			'rowNum' => 5,
 			'viewrecords' => true,
 			'width' => '100%',
+			'onSelectRow' => false,
 			'jsonReader' => array(
 				'repeatitems' => false,
 				'id' => 'id',
