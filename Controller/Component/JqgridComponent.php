@@ -33,7 +33,7 @@ class JqgridComponent extends Component {
 	public function __construct(ComponentCollection $collection, $settings = array()) {
 		parent::__construct($collection, $settings);
 	}
-	
+
 	public function initialize(Controller $controller) {
 		$this->controller = $controller;
 	}
@@ -41,7 +41,7 @@ class JqgridComponent extends Component {
 	protected function _extractFields($fields) {
 		for ($i = 0; $i < count($fields); $i++) {
 			$arr = explode('.', $fields[$i]);
-			$res[$arr[0]][] = $arr[1];
+			if(isset($arr[1])) $res[$arr[0]][] = $arr[1];
 		}
 		return $res;
 	}
