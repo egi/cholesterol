@@ -40,8 +40,12 @@ class JqgridComponent extends Component {
 
 	protected function _extractFields($fields) {
 		for ($i = 0; $i < count($fields); $i++) {
-			$arr = explode('.', $fields[$i]);
-			if(isset($arr[1])) $res[$arr[0]][] = $arr[1];
+			#XXX HACK EXTRACT FIELDS
+			if(strpos($fields[$i]," as ")){
+				$arr = array(0,$fields[$i]);
+			}else
+				$arr = explode('.', $fields[$i]);
+			$res[$arr[0]][] = $arr[1];
 		}
 		return $res;
 	}
@@ -66,14 +70,15 @@ class JqgridComponent extends Component {
 			if (strstr($key, '_')) {
 				$newkey = preg_replace('/_/', '.', $key, 1);
 			}
-
-			switch ($filterMode) {
-			case 'exact':
+			#XXX : HACK 0 == exact valid. exact == predefine variable
+			if ($filterMode==='exact') {
+			//case 'exact':
 				$conditions[$newkey] = $val;
-				break;
-
-			default:
+			//	break;
+			}else{
+			//default:
 				if (strpos($val, ' - ')) {
+					
 					$date = explode(' - ', $val);
 					if (count($date) == 2) {
 						$conditions[$newkey . ' BETWEEN ? AND ?'] = array($date[0], $date[1]);
@@ -83,7 +88,7 @@ class JqgridComponent extends Component {
 				} else {
 					$conditions[$newkey . ' like'] = '%' . $val . '%';
 				}
-				break;
+				//break;
 			}
 		}
 	}
@@ -259,7 +264,7 @@ class JqgridComponent extends Component {
 			
 			foreach($fields as $key =>$value){
 				$temp_rule = str_replace("0.", "as ",$f['sidx']);
-				if(strpos($value,$temp_rule)){
+				if(strpos($value,$temp_rule)&&strpos($f['sidx'],"0.")){
 					return array(
 						str_replace($temp_rule," ",$value) => $f['sord'],
 					); 
@@ -284,7 +289,6 @@ class JqgridComponent extends Component {
 			$f = $this->_extractGetParams($this->controller->request->query);
 			extract($f);
 		}
-
 		$exportOptions = json_decode(Cache::read('export_options_' . $gridId), true);
 	
 		/****
@@ -311,7 +315,6 @@ class JqgridComponent extends Component {
 				$fields[] = $modelName . '.' . $needFields[$modelName][$i];
 			}
 		}
-		
 		if ($_search) {
 			if (!empty($filters)) {
 				$this->_mergeAdvSearchConditions($options['conditions'], $needFields, $filters,$options['fields']);
@@ -319,7 +322,6 @@ class JqgridComponent extends Component {
 				$this->_mergeFilterConditions($options['conditions'], $needFields, $filterMode);
 			}
 		}
-
 		$countOptions = $options;
 		
 		unset ($countOptions['fields']);
@@ -341,7 +343,6 @@ class JqgridComponent extends Component {
 			'limit' => $limit,
 			'order' => $field_order
 			);
-
 		$rows = $model->find('all', $findOptions);
 
 		if ($doExport) {
