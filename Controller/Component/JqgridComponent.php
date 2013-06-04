@@ -77,9 +77,9 @@ class JqgridComponent extends Component {
 			//	break;
 			}else{
 			//default:
-				if (strpos($val, ' - ')) {
+				if (strpos($val, '--')) {
 					
-					$date = explode(' - ', $val);
+					$date = explode('--', $val);
 					if (count($date) == 2) {
 						$conditions[$newkey . ' BETWEEN ? AND ?'] = array($date[0], $date[1]);
 					} else {
