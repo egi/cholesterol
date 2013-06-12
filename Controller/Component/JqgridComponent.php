@@ -76,6 +76,12 @@ class JqgridComponent extends Component {
 			//	break;
 			}else{
 			//default:
+				if(is_null($val)){
+					//$conditions[$newkey] = explode(",",$val);
+				}else
+				if($val=="null"){
+					//$conditions[$newkey] = explode(",",$val);
+				}else
 				if(strpos($val, ',')){
 					$conditions[$newkey] = explode(",",$val);
 				}else
