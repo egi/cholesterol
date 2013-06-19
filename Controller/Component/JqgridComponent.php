@@ -259,7 +259,7 @@ class JqgridComponent extends Component {
 			
 			foreach($fields as $key =>$value){
 				$temp_rule = str_replace("0.", "as ",$rule->field);
-				if(strpos($value,$temp_rule)){
+				if(strpos($value,$temp_rule)&&strpos($rule->field,"0.")){
 					$rule->field = str_replace($temp_rule," ",$value);
 				}			
 							
