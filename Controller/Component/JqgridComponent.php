@@ -53,7 +53,6 @@ class JqgridComponent extends Component {
 	/** construct $conditions array when using Filter Toolbar feature */
 	protected function _mergeFilterConditions(&$conditions, $needFields, $filterMode) {
 		$ignoreList = array('ext', 'url', '_search', 'nd', 'page', 'rows', 'sidx', 'sord', 'doExport', 'exportOptions', 'filterMode', 'filters', 'gridId',);
-
 		$url = $this->controller->request->query;
 		$i = 0;
 		foreach ($url as $key => $val) {
@@ -77,9 +76,18 @@ class JqgridComponent extends Component {
 			//	break;
 			}else{
 			//default:
-				if (strpos($val, ' - ')) {
+				if(is_null($val)){
+					//$conditions[$newkey] = explode(",",$val);
+				}else
+				if($val=="null"){
+					//$conditions[$newkey] = explode(",",$val);
+				}else
+				if(strpos($val, ',')){
+					$conditions[$newkey] = explode(",",$val);
+				}else
+				if (strpos($val, '--')) {
 					
-					$date = explode(' - ', $val);
+					$date = explode('--', $val);
 					if (count($date) == 2) {
 						$conditions[$newkey . ' BETWEEN ? AND ?'] = array($date[0], $date[1]);
 					} else {
@@ -107,7 +115,6 @@ class JqgridComponent extends Component {
 			$op = JqgridComponent::$mapOpers[$rule->op];
 			
 			$data = $rule->data;
-			
 			#hack untuk memasukan advance select yang hasilnya 0.name menjadi ke kondition, untuk qgrid toolbar search nya di add  defaultSearch : 'nc' sebagai option
 			$this->_hack_count_added_condition_to_search($fields,$rule);
 
@@ -252,7 +259,7 @@ class JqgridComponent extends Component {
 			
 			foreach($fields as $key =>$value){
 				$temp_rule = str_replace("0.", "as ",$rule->field);
-				if(strpos($value,$temp_rule)){
+				if(strpos($value,$temp_rule)&&strpos($rule->field,"0.")){
 					$rule->field = str_replace($temp_rule," ",$value);
 				}			
 							

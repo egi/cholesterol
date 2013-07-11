@@ -5,9 +5,6 @@ $include_path = get_include_path();
 $newpath = ($include_path . PATH_SEPARATOR . APP . 'Vendor' . DS . 'phpexcel');
 set_include_path($newpath);
 
-App::uses('Helper', 'View/Helper');
-App::uses('TimeHelper', 'View/Helper');
-
 App::import('Vendor', 'PHPExcel', array(
 	'file' => 'phpexcel/PHPExcel.php'
 ));
@@ -15,18 +12,16 @@ App::import('Vendor', 'PHPExcel_IOFactory', array(
 	'file' => 'phpexcel/PHPExcel/IOFactory.php'
 ));
 
+App::uses('CakeTime', 'Utility');
+
 class ExcelExporterComponent extends Component {
 
-	function initialize($controller) {
-		if ($controller->View == null) {
-			$view = new View($controller);
-		} else {
-			$view = $controller->View;
-		}
-		$this->Time = new TimeHelper($view);
+	public function initialize(Controller $controller) {
+		$this->controller = $controller;
+		$this->Time = new CakeTime();
 	}
 
-	function _writeHeaders(&$xls, $options) {
+	protected function _writeHeaders(&$xls, $options) {
 		$sheet = $xls->getActiveSheet();
 
 		if (!empty($options['columnHeaders'])) {
@@ -57,19 +52,18 @@ class ExcelExporterComponent extends Component {
 		}
 	}
 
-	/** Export $data into an Excel file
-	 *
-	 *  @param $data mixed data retrieved via Model->find operation
-	 *  @param $options mixed array of options
-	 *
-	 */
-	function export($modelName, $data, $options = array()) {
-
+/** Export $data into an Excel file
+ *
+ *  @param $data mixed data retrieved via Model->find operation
+ *  @param $options mixed array of options
+ *
+ */
+	public function export($modelName, $data, $options = array()) {
 		$needHeader = true;
 		$startRow = 2;
 		$startCol = 'A';
 
-		$options = Set::merge(array(
+		$options = Hash::merge(array(
 			'template' => array(
 				'file' => null,
 				'type' => 'Excel5',
@@ -90,8 +84,7 @@ class ExcelExporterComponent extends Component {
 		);
 
 		if (empty($data)) {
-			trigger_error('No data to export');
-			return;
+			throw new CakeException('No data to export');
 		}
 
 		if (!empty($options['template']['file'])) {
@@ -111,16 +104,19 @@ class ExcelExporterComponent extends Component {
 			$this->_writeHeaders($xls, $options);
 		}
 
-		$Model = ClassRegistry::init($modelName);
+		list($pluginName, $pluginModel) = pluginSplit($modelName);
+		$Model = ClassRegistry::init($pluginModel);
 
 		for ($i = 0, $ii = count($data); $i < $ii; $i++) {
 			$col = 0;
 			$row = $i + $startRow;
 			for ($c = 0, $cc = count($options['fields']); $c < $cc; $c++) {
 				$currentField = $options['fields'][$c];
-				$split = explode('.', $currentField, 2);
-				$fieldModel = $split[0];
-				$fieldName = $split[1];
+				if (strpos($currentField, '.') !== false) {
+					list($fieldModel, $fieldName) = pluginSplit($currentField);
+				} else {
+					list($fieldModel, $fieldName) = array($pluginModel, $currentField);
+				}
 				$cell = PHPExcel_Cell::stringFromColumnIndex($col) . $row;
 				if (!isset($data[$i][$fieldModel][$fieldName])) {
 					$fieldType = 'string';
@@ -139,7 +135,7 @@ class ExcelExporterComponent extends Component {
 		$writer->save($options['output']['file']);
 	}
 
-	function _getColumnType($Model, $fieldModel, $fieldName) {
+	protected function _getColumnType($Model, $fieldModel, $fieldName) {
 		if ($fieldModel == $Model->name) {
 			$fieldType = $Model->getColumnType($fieldName);
 		} else {
@@ -153,7 +149,7 @@ class ExcelExporterComponent extends Component {
 	}
 
 	/** Set cell value and format according to field type */
-	function _setCellValue($sheet, $cell, $fieldType, $fieldValue, $options) {
+	protected function _setCellValue($sheet, $cell, $fieldType, $fieldValue, $options) {
 		switch ($fieldType) {
 
 		case 'timestamp':
@@ -186,5 +182,3 @@ class ExcelExporterComponent extends Component {
 	}
 
 }
-
-?>
