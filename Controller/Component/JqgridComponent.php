@@ -289,8 +289,34 @@ class JqgridComponent extends Component {
 			$f = $this->_extractGetParams($this->controller->request->query);
 			extract($f);
 		}
+		// hack date from d/m/y to Y/m/d
+		$i=0;
+		if ($_search) {
+			if (!empty($filters)) {
+				foreach ($filters->rules as $value) {
+					$date = explode("/", $value->data);
+					if (count($date)>2) {
+						$date_format = 'm/d/y';
+						$date = $date[1]."/".$date[0]."/".$date[2];
+						$input = trim($date);
+						$time = strtotime($input);
+
+						$is_valid = date($date_format, $time) == $input;
+						if ($is_valid) {
+							$date = DateTime::createFromFormat('d/m/y', $value->data);
+							$tgl = $date->format('Y-m-d');
+							$filters->rules[$i]->data=$tgl;
+						}
+					}
+					$i++;
+				}
+			}
+		}
+		//echo "<pre>";
+		//print_r($filters);
+		//end hack
 		$exportOptions = json_decode(Cache::read('export_options_' . $gridId), true);
-	
+
 		/****
 		start hack merge order with sort
 		*/
@@ -322,8 +348,11 @@ class JqgridComponent extends Component {
 				$this->_mergeFilterConditions($options['conditions'], $needFields, $filterMode);
 			}
 		}
-		$countOptions = $options;
 		
+		$countOptions = $options;
+		//	echo "<pre>";
+		//print_r($options);
+
 		unset ($countOptions['fields']);
 		$count = $model->find('count', $countOptions);
 
@@ -344,7 +373,8 @@ class JqgridComponent extends Component {
 			'order' => $field_order
 			);
 		$rows = $model->find('all', $findOptions);
-
+		//echo "<pre>";
+		//print_r($options);
 		if ($doExport) {
 			if (!empty($rows[0])) {
 				$exportFields = array_keys(Set::flatten($rows[0]));
