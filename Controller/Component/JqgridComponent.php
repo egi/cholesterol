@@ -271,11 +271,13 @@ class JqgridComponent extends Component {
 	public function _hack_count_change_condition_for_sort(&$fields,&$f){
 			
 			foreach($fields as $key =>$value){
-				$temp_rule = str_replace("0.", "as ",$f['sidx']);
+				$temp_rule = str_replace("0.", " ",$f['sidx']);
 				if(strpos($value,$temp_rule)){
+				
 				//if(strpos($value,$temp_rule)&&strpos($f['sidx'],"0.")){
 					return array(
-						str_replace($temp_rule," ",$value) => $f['sord'],
+					//	str_replace($temp_rule," ",$value) => $f['sord'],
+						$temp_rule => $f['sord']
 					); 
 				}			
 			}	
