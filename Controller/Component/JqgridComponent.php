@@ -259,7 +259,8 @@ class JqgridComponent extends Component {
 			
 			foreach($fields as $key =>$value){
 				$temp_rule = str_replace("0.", "as ",$rule->field);
-				if(strpos($value,$temp_rule)&&strpos($rule->field,"0.")){
+				if(strpos($value,$temp_rule)){
+				//if(strpos($value,$temp_rule)&&strpos($rule->field,"0.")){
 					$rule->field = str_replace($temp_rule," ",$value);
 				}			
 							
@@ -271,7 +272,8 @@ class JqgridComponent extends Component {
 			
 			foreach($fields as $key =>$value){
 				$temp_rule = str_replace("0.", "as ",$f['sidx']);
-				if(strpos($value,$temp_rule)&&strpos($f['sidx'],"0.")){
+				if(strpos($value,$temp_rule)){
+				//if(strpos($value,$temp_rule)&&strpos($f['sidx'],"0.")){
 					return array(
 						str_replace($temp_rule," ",$value) => $f['sord'],
 					); 
