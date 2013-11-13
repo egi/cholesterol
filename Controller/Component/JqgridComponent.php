@@ -254,14 +254,14 @@ class JqgridComponent extends Component {
 
 	// Ubah rule fieldsnya 
 	public function _hack_count_added_condition_to_search(&$fields,&$rule){
-			
+			Configure::write('debug', 0);
 			foreach($fields as $key =>$value){
 				$temp_rule = str_replace("0.", "as ",$rule->field);
 				if(strpos($value,$temp_rule)){
 				//if(strpos($value,$temp_rule)&&strpos($rule->field,"0.")){
 					//!separated field and alias for count search condition causing error
-					list($field,$alias) = explode(" as ",$value);
-					$rule->field = str_replace($field," ",$value);
+					list($field,$alias) = explode(" as ",$temp_rule,1);
+					$rule->field = $field;
 				}			
 							
 			}	
