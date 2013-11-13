@@ -257,13 +257,12 @@ class JqgridComponent extends Component {
 			Configure::write('debug', 0);
 			foreach($fields as $key =>$value){
 				$temp_rule = str_replace("0.", "as ",$rule->field);
-				if(strpos($value,$temp_rule)){
+				if(strpos($value,$temp_rule)&&strpos("||".$rule->field,"0.")){// || agar start strpos dimulai dari 2 
 				//if(strpos($value,$temp_rule)&&strpos($rule->field,"0.")){
 					//!separated field and alias for count search condition causing error
-					list($field,$alias) = explode(" as ",$temp_rule,1);
+					list($field,$alias) = explode("as ",$value);
 					$rule->field = $field;
-				}			
-							
+				}
 			}	
 	
 	}
