@@ -105,8 +105,6 @@ class JqgridComponent extends Component {
 	protected function _mergeAdvSearchConditions(&$conditions, $needFields, $filters,$fields) {
 
 
-		//pr($fields);
-		//pr($filters);
 		
 		$rules = array();
 
@@ -261,7 +259,9 @@ class JqgridComponent extends Component {
 				$temp_rule = str_replace("0.", "as ",$rule->field);
 				if(strpos($value,$temp_rule)){
 				//if(strpos($value,$temp_rule)&&strpos($rule->field,"0.")){
-					$rule->field = str_replace($temp_rule," ",$value);
+					//!separated field and alias for count search condition causing error
+					list($field,$alias) = explode(" as ",$value);
+					$rule->field = str_replace($field," ",$value);
 				}			
 							
 			}	
